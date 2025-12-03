@@ -1,31 +1,44 @@
-pipeline{
-		agent {
-  label 'win'
-}
+pipeline {
+    agent any
 
-		stages{
-		   			stage(clean){
-				steps{
-					sh 'mvn clean'
-					}
-			}
-stage(install){
-				steps{
-					sh 'mvn  install -DskipTests'
-					}
-			}
-			stage(test){
-				steps{
-					sh 'mvn test'
-					}
-					
-					post {
-  always {
-    archiveArtifacts artifacts: 'target/*.jar', followSymlinks: false
-					
-					junit 'target/surefire-reports/*.xml'
-  }
+    tools {
+        maven 'MAVEN_HOME'
+        jdk 'JDK17'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/poornesh-12/b7-java-1.git', branch: 'main'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build Completed Successfully!'
+        }
+        failure {
+            echo 'Build Failed!'
+        }
+    }
 }
-			}
-		}
-	}
